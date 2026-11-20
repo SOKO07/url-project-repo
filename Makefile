@@ -9,19 +9,21 @@
 # 외부 라이브러리를 쓰지 않는다. Python 표준 모듈만으로 돈다.
 
 PORT ?= 8000
+PYTHON ?= python3
 
 .PHONY: all test serve experiment clean
 
 all: test
 
 test:
-	@python3 -m unittest discover -s tests -v
+	@$(PYTHON) -m unittest discover -s tests -v
 
 serve:
-	@python3 src/server.py --port $(PORT)
+	@$(PYTHON) src/server.py --port $(PORT)
 
 experiment:
-	@python3 experiments/probe_experiment.py
+	@$(PYTHON) experiments/probe_experiment.py
+	@$(PYTHON) experiments/compare_experiment.py
 
 clean:
 	rm -rf src/__pycache__ tests/__pycache__ experiments/__pycache__
