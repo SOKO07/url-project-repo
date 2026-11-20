@@ -1,6 +1,6 @@
 """URL shortener web service (standard library http.server only).
 
-  python src/server.py [--port 8000] [--host 0.0.0.0]
+  python src/server.py [--port 8000] [--host 0.0.0.0] [--table chaining|probing]
 """
 import argparse
 import html
@@ -12,6 +12,7 @@ from urllib.parse import parse_qs
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from hash_table import HashTable, horner_steps  # noqa: E402
+from probing_table import LinearProbingTable  # noqa: E402
 from shortener import Shortener  # noqa: E402
 
 STYLE = """
@@ -66,8 +67,36 @@ def node_html(table, node, base):
                html.escape(url), table.size, rows))
 
 
+def probing_row(table, i, base):
+    entry = table.entry_at(i)
+    if entry is None:
+        return "<div class='slot'><span class='idx'>[%d]</span><span class='null'>(empty)</span></div>" % i
+    home = table.slot_of(entry.key)
+    probes = table.probes_of(entry.key)
+    link = "%s/%s" % (base, entry.value)
+    steps = horner_steps(entry.key, table.size)
+    rows = "".join(
+        "<tr><td>%s</td><td>%d</td><td>%d</td><td>%d</td></tr>"
+        % (html.escape(ch), c, before, after) for ch, c, before, after in steps)
+    return ("<div class='slot'><span class='idx'>[%d]</span><div class='node'><b>%s</b> &rarr; "
+            "<a href='%s'>%s</a><br><small>%s</small><br>"
+            "home slot %d, probed %d slot(s)%s"
+            "<details><summary>Horner hash (M=%d)</summary>"
+            "<table><tr><th>char</th><th>code</th><th>h before</th><th>h=(31h+c) mod M</th></tr>%s</table>"
+            "</details></div></div>"
+            % (i, html.escape(entry.value), html.escape(link, quote=True), html.escape(link),
+               html.escape(entry.key), home, probes,
+               " (wrapped around)" if i < home else "", table.size, rows))
+
+
 def table_page(shortener, base):
     table = shortener.by_url
+    if isinstance(table, LinearProbingTable):
+        out = ["<h1>Hash table (linear probing)</h1><p><a href='/'>home</a> &middot; entries: %d, slots: %d, load factor: %.2f</p>"
+               % (len(table), table.size, table.load_factor)]
+        for i in range(table.size):
+            out.append(probing_row(table, i, base))
+        return page("Hash table", "".join(out))
     out = ["<h1>Hash table</h1><p><a href='/'>home</a> &middot; entries: %d, slots: %d, load factor: %.2f</p>"
            % (len(table), table.size, table.load_factor)]
     for i in range(table.size):
@@ -148,8 +177,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--table", choices=["chaining", "probing"], default="chaining")
     args = ap.parse_args()
-    server = make_server(Shortener(HashTable), args.host, args.port)
+    factory = LinearProbingTable if args.table == "probing" else HashTable
+    server = make_server(Shortener(factory), args.host, args.port)
     print("Serving on http://%s:%d (Ctrl+C to stop)" % (args.host, args.port))
     try:
         server.serve_forever()
