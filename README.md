@@ -1,5 +1,7 @@
 # 과제2 · 에이전트와 함께 만드는 URL 단축기
 
+> **보고서:** [report/REPORT.md](report/REPORT.md) (제출용 PDF는 LearnUs에 업로드)
+
 2026-2 고급알고리즘(SIT2001-01) 과제2. 직접 만든 해시 테이블(분리 연쇄, 숙제로 선형 탐사)
 위에 URL 단축 서비스를 만든다. `dict`·`set`·내장 `hash()`는 쓰지 않고, 표준 라이브러리만 쓴다.
 
@@ -30,6 +32,7 @@ python experiments/compare_experiment.py
 
 | 경로 | 내용 |
 | --- | --- |
+| `report/REPORT.md` | 보고서 (캡처 `probing_collision.png` 포함) |
 | `SPEC.md` · `PLAN.md` | 명세(AI 초안), 구현 계획 |
 | `src/base62.py` | 정수 ↔ base62 (`0-9a-zA-Z`) |
 | `src/hash_table.py` | 분리 연쇄 해시 테이블, Horner 해시 |
