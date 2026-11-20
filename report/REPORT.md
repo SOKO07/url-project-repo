@@ -1,5 +1,6 @@
 # 과제2 보고서 · URL 단축기
 
+이석호 [20263229]
 저장소: https://github.com/SOKO07/url-project-repo
 
 ## 1. 구현
