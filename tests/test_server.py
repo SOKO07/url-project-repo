@@ -74,3 +74,22 @@ class TestServer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestServerProbing(TestServer):
+    """Same server tests, with the shortener on linear probing."""
+
+    def setUp(self):
+        from probing_table import LinearProbingTable
+        self.srv = make_server(Shortener(LinearProbingTable), "127.0.0.1", 0)
+        self.port = self.srv.server_address[1]
+        self.thread = threading.Thread(target=self.srv.serve_forever, daemon=True)
+        self.thread.start()
+
+    def test_table_page(self):
+        self.shorten("https://example.com/x")
+        r, body = self.req("GET", "/table")
+        self.assertEqual(r.status, 200)
+        self.assertIn("linear probing", body)
+        self.assertIn("probed", body)
+        self.assertIn("Horner", body)
