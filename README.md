@@ -1,52 +1,56 @@
 # 과제2 · 에이전트와 함께 만드는 URL 단축기
 
-2026-2 **고급알고리즘**(SIT2001-01) 과제2의 **시작 저장소**입니다.
-채팅창에 묻고 복사·붙여넣기 하던 방식에서 벗어나, Codespace 안의 에이전트가
-저장소를 읽고, 파일을 고치고, 테스트를 직접 돌리게 하는 방법을 익힙니다.
+2026-2 고급알고리즘(SIT2001-01) 과제2. 직접 만든 해시 테이블(분리 연쇄, 숙제로 선형 탐사)
+위에 URL 단축 서비스를 만든다. `dict`·`set`·내장 `hash()`는 쓰지 않고, 표준 라이브러리만 쓴다.
 
-- 과제 안내: [lec-algorithm.github.io/lecture/article/hw2-2026](https://lec-algorithm.github.io/lecture/article/hw2-2026/)
-- 수업 슬라이드: [lec-algorithm.github.io/lecture/slides/hw2-2026](https://lec-algorithm.github.io/lecture/slides/hw2-2026/)
-- 해시 테이블 복습: [주제 08 해시 테이블](https://lec-algorithm.github.io/lecture/course/topic-08-hashing/)
+## 실행 방법
 
-## 시작하기
+Python 3.10 이상. 아래는 모두 저장소 루트에서 실행한다. `make`가 있으면 `make test`·`make serve`·`make experiment`도 된다
+(Windows처럼 `python3`가 없으면 `make PYTHON=python test`).
 
-1. 이 저장소 상단의 **Use this template** → **Create a new repository**
-2. 저장소 이름은 `algorithms-hw2`처럼 정합니다. 공개(Public)로 만듭니다.
-3. 만들어진 **내 저장소**에서 **Code** → **Codespaces** 탭 → **Create codespace on main**
-4. 왼쪽 막대의 Copilot 아이콘을 눌러 채팅 창을 열고, 창 아래쪽에서 **Agent** 모드를 고릅니다.
+```powershell
+# 테스트
+python -m unittest discover -s tests
 
-## 들어 있는 것
+# 웹 서버 (http://localhost:8000). 선형 탐사 테이블로 돌리려면 --table probing
+python src/server.py --port 8000
+python src/server.py --table probing
 
-| 파일 | 하는 일 |
-| --- | --- |
-| `SPEC.md` | 명세 틀. 에이전트가 초안을 쓰고 **본인이 고칩니다** |
-| `src/` · `tests/` · `experiments/` | 비어 있습니다. 수업에서 채웁니다 |
-| `tools/catchup.sh` | 수업 중 놓친 단계를 따라잡는 스크립트 |
-| `Makefile` | `make test` · `make serve` · `make experiment` |
-
-정답 코드는 들어 있지 않습니다. 에이전트는 작업 공간의 파일을 읽으므로, 정답이
-옆에 있으면 그대로 베껴 와서 연습이 되지 않습니다.
-
-## 명령
-
-컨테이너 안(Codespaces 터미널)에서 실행합니다.
-
-| 하고 싶은 것 | 명령 |
-| --- | --- |
-| 테스트 | `make test` |
-| 웹 서버 (포트 8000) | `make serve` |
-| 충돌 실험 | `make experiment` |
-| 놓친 단계 따라잡기 | `sh tools/catchup.sh <단계 번호>` |
-
-외부 라이브러리는 쓰지 않습니다. Python 표준 모듈만으로 충분합니다.
-
-## 로컬에서 하기
-
-```sh
-git clone https://github.com/<본인 계정>/<내 저장소>.git
-cd <내 저장소>
-docker compose up -d
-docker compose exec lab bash
+# 실험 (experiments/ 에 csv와 svg를 쓴다)
+python experiments/probe_experiment.py
+python experiments/compare_experiment.py
 ```
 
-**이후 모든 `docker compose` 명령은 이 폴더에서 칩니다.**
+서버는 `/`(입력 폼), `POST /shorten`, `/<코드>`(원래 주소로 302), `/table`(해시 테이블 보기)를 제공한다.
+`/table`에서 노드를 펼치면 Horner 해시 계산 과정이 나온다. 짧은 링크의 주소는
+`X-Forwarded-Host`/`X-Forwarded-Proto`가 있으면 그것을 쓴다.
+같은 Wi-Fi의 휴대폰에서는 `http://<PC의 IP>:8000`으로 연다(서버는 모든 인터페이스에서 받는다. 끝나면 Ctrl+C로 끈다).
+
+## 구성
+
+| 경로 | 내용 |
+| --- | --- |
+| `SPEC.md` · `PLAN.md` | 명세(AI 초안), 구현 계획 |
+| `src/base62.py` | 정수 ↔ base62 (`0-9a-zA-Z`) |
+| `src/hash_table.py` | 분리 연쇄 해시 테이블, Horner 해시 |
+| `src/probing_table.py` | 선형 탐사 해시 테이블 (같은 인터페이스) |
+| `src/shortener.py` | 일련번호 → base62 코드, URL↔코드 테이블 |
+| `src/server.py` | `http.server` 웹 서비스 |
+| `tests/` | `unittest` (단축기·서버 테스트는 두 테이블 모두에 돌린다) |
+| `experiments/` | 적재율 실험(`results.csv`, `chart.svg`), 연쇄 대 탐사 비교(`compare_results.csv`, `compare_chart.svg`) |
+| `.github/copilot-instructions.md` · `CLAUDE.md` | 에이전트 규칙 파일 |
+
+## 실험 결과 (M = 4093, 시드 2026)
+
+적재율 0.9에서 탐색 비용(비교한 노드 수 또는 살펴본 슬롯 수):
+
+| 방식 | 성공 탐색 | 실패 탐색 |
+| --- | --- | --- |
+| 분리 연쇄 (이론 1+α/2, α) | 1.44 | 0.91 |
+| 선형 탐사 (이론 5.5, 50.5) | 5.21 | 39.4 |
+
+## 작업 기록과 AI 사용
+
+단계마다 이슈(#1~#8), `feature/<번호>-<이름>` 브랜치, `Step N: … (#번호)` 커밋으로 남겼다.
+구현은 에이전트(Claude Code, 로컬 Windows)가 했고 진행 상황은 이슈 댓글에 있다.
+`SPEC.md`는 에이전트 초안이며 사용자가 검토 후 그대로 확정했다. 보고서는 사용자가 직접 쓴다.
