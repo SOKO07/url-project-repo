@@ -1,9 +1,10 @@
-# To the agent working in this repository
+# 이 저장소에서 작업하는 에이전트에게
 
-- Read SPEC.md before writing code. PLAN.md has the order of work.
-- Do not use dict, set or the built-in hash() inside src/. Use the hash table we built.
-- After changing code, run the tests (`make test`, or `python -m unittest discover -s tests` where make is missing) and show the result.
-- If a test fails, fix the code, not the test.
-- For each issue, work on feature/<issue-number>-<name> off develop and post progress as issue comments.
-- When done, commit as "Step N: what was done (#issue)", merge into develop, push and close the issue.
-- I am a first-year student. Summarize what you changed in at most three lines.
+- 코드를 쓰기 전에 SPEC.md를 읽는다. 작업 순서는 PLAN.md에 있다.
+- src/ 안에서 dict, set, 내장 hash()를 쓰지 않는다. 직접 만든 해시 테이블을 쓴다.
+- 코드를 바꾼 뒤에는 테스트를 돌리고 결과를 보여 준다 (`make test`, make가 없으면 `python -m unittest discover -s tests`).
+- 테스트가 실패하면 테스트가 아니라 코드를 고친다.
+- 이슈마다 develop에서 feature/<이슈번호>-<이름> 브랜치를 따서 작업하고, 진행 상황은 이슈 댓글로 남긴다.
+- 끝나면 "Step N: 한 일 (#이슈번호)" 형식으로 커밋하고, develop에 병합해 push한 뒤 이슈를 닫는다.
+- 이슈 제목, 본문, 댓글은 한국어로 쓴다.
+- 나는 1학년이다. 바꾼 내용은 세 줄 이내로 요약한다.
